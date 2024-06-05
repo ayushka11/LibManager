@@ -1,23 +1,27 @@
 const mysql = require('mysql2');
 const dotenv = require('dotenv').config();
 
-const pool = mysql
-  .createPool({
-    host: "localhost",
-    user: "root",
-    password: process.env.PASSWD,
-    database: process.env.DATABASE,
-  })
-  .promise();
+const pool = mysql.createPool({
+  host: "localhost",
+  user: "ayushka",
+  password: process.env.PASSWD,
+  database: process.env.DATABASE,
+  insecureAuth: true
+}).promise();
 
-  pool.getConnection((err, connection) => {
-    if (err) {
-        console.error('Error connecting to database:', err);
-        return;
-    }
-    console.log('Database connected!');
-    connection.release(); // Release the connection
-});
+// pool.connect(function(err) {
+//   if (err) throw err;
+//   console.log("Connected!");
+// })
+
+//   pool.getConnection((err, connection) => {
+//     if (err) {
+//         console.error('Error connecting to database:', err);
+//         return;
+//     }
+//     console.log('Database connected!');
+//     connection.release(); // Release the connection
+// });
 
   async function createUser(name) {
     const result = await pool.query(`insert into users(name) values(?)`, [name]);
