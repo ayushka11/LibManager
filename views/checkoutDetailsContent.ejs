@@ -1,0 +1,20 @@
+<h1 class="mb-4">Transaction Details</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Transaction Information</h3>
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">Book Title: <%= book.title %></h5>
+    <p class="card-text">Author: <%= book.author %></p>
+    <% if (checkoutType === 'checkOut') { %>
+    <p class="card-text">Checked Out By: <%= user.username %></p>
+    <% } else if (checkoutType === 'checkIn') { %>
+    <p class="card-text">Checked In By: <%= user.username %></p>
+    <% } %>
+    <!-- Additional transaction details can be added here -->
+
+    <form action="/api/user/books/view" method="GET">
+      <button type="submit" class="btn btn-secondary">Back to Library</button>
+    </form>
+  </div>
+</div>

@@ -30,3 +30,5 @@ CREATE TABLE admin_requests (
     status VARCHAR(20) DEFAULT 'pending',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+

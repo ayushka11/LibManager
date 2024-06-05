@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const validateToken = require('./middleware/validateToken');
 
+const { pool } = require('./database');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -20,15 +22,61 @@ app.use(cors());
 app.use(cookieParser());
 
 app.use('/api/users', require('./routes/loginRoutes'));
+app.use("/api/user", require("./routes/userRoutes"));
 app.use(errorHandler);
 
-// app.get("/login", (req, res) => {
-//   res.render("loginUser");
-// });
+app.get("/login", (req, res) => {
+  res.render("loginUser");
+});
 
-// app.get("/register", (req, res) => {
-//   res.render("registerUser");
-// });
+app.get("/register", (req, res) => {
+  res.render("registerUser");
+});
+
+
+
+app.get("/home", validateToken, async (req, res) => {
+  try {
+    if (req.user.isAdmin) {
+      res.render("adminHome", { user: req.user, message: "" });
+    } else {
+      const [rows] = await pool.query("SELECT * FROM books"); // Adjust the query based on your table structure
+      const books = rows;
+      res.render("userHome", { user: req.user, books: books });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/view", validateToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM books"); // Adjust the query based on your table structure
+    const books = rows;
+    res.render("userViewBooks", { user: req.user, books: books });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/history", validateToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query("SELECT * FROM books"); // Adjust the query based on your table structure
+    const books = rows;
+    res.render("checkoutHistory", { user: req.user, books: books });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/logout", (req, res) => {
+  res.clearCookie("jwt");
+  res.redirect("/login");
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
