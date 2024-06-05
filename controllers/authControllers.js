@@ -31,7 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
         res.redirect('/login');
     } catch (err) {
         const sqlmssg = err.sqlMessage;
-        if (sqlMessage.slice(0, 15) == 'Duplicate entry') {
+        if (err.sqlmssg && sqlmssg.slice(0, 15) == 'Duplicate entry') {
             res.status(400);
             throw new Error('Username already exists');
         }

@@ -20,6 +20,15 @@ app.use(cors());
 app.use(cookieParser());
 
 app.use('/api/users', require('./routes/loginRoutes'));
+app.use(errorHandler);
+
+app.get("/login", (req, res) => {
+  res.render("loginUser");
+});
+
+app.get("/register", (req, res) => {
+  res.render("registerUser");
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
