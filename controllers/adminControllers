@@ -3,40 +3,44 @@ const { pool } = require("../database");
 const { search } = require("../routes/loginRoutes");
 
 const viewAdminRequests = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-        return res.redirect(
+  if (!req.user.isAdmin) {
+      return res.redirect(
           "/error?type=403 Forbidden&message=You are not authorized to view this page."
-        );
-      }
-    try {
-        const query = "SELECT * FROM users WHERE adminRequest = 'pending'";
-        const result = await pool.query(query);
-        const users = result.rows;
-        res.render("adminRequests", { users });
-    } catch (error) {
-        console.error("Error retrieving admin requests:", error);
-        res.status(500).send("Internal Server Error");
-    }    
+      );
+  }
+  try {
+      //console.log('reached viewAdminRequests');
+      const query = "SELECT * FROM users WHERE admin_request_status = 'pending'";
+      const [users] = await pool.query(query); // Correctly destructure the result to get the rows
+      //console.log(users);
+      res.render("adminRequests", { users });
+  } catch (error) {
+      console.error("Error retrieving admin requests:", error);
+      res.status(500).send("Internal Server Error");
+  }    
 });
 
 const approveAdminRequests = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-        return res.redirect(
+  if (!req.user.isAdmin) {
+      return res.redirect(
           "/error?type=403 Forbidden&message=You are not authorized to view this page."
-        );
-    }
-    try {
-        const { userId } = req.params;
-        const query = "UPDATE users SET admin_request_status = 'approved', isAdmin = true WHERE id = $1";
-        await pool.query(query, [userId]);
-        res.redirect("/admin/requests");
-        msg = "Admin request approved";
-    } catch (error) {
-        msg = "Internal Server Error!! Failed to approve admin request";
-        console.error("Error approving admin request:", error);
-        res.status(500).send("Internal Server Error");
-    }
+      );
+  }
+  try {
+      const { id: userId } = req.params; 
+      const query = "UPDATE users SET admin_request_status = 'approved', isAdmin = true WHERE id = ?";
+      await pool.query(query, [userId]); // Use userId directly
+      res.status(200);
+      res.redirect("/api/admin/requests");
+      msg = "Admin request approved";
+
+  } catch (error) {
+      msg = "Internal Server Error!! Failed to approve admin request";
+      console.error("Error approving admin request:", error);
+      res.status(500).send("Internal Server Error");
+  }
 });
+
 
 const rejectAdminRequests = asyncHandler(async (req, res) => {
     if (!req.user.isAdmin) {
@@ -45,10 +49,12 @@ const rejectAdminRequests = asyncHandler(async (req, res) => {
         );
     }
     try {
-        const { userId } = req.params;
-        const query = "UPDATE users SET admin_request_status = 'rejected' WHERE id = $1";
+        const { id: userId } = req.params;
+        console.log(userId);
+        const query = "UPDATE users SET admin_request_status = 'rejected' WHERE id = ?";
         await pool.query(query, [userId]);
-        res.redirect("/admin/requests");
+        res.status(200);
+        res.redirect("/api/admin/requests");
         msg = "Admin request rejected";
     } catch (error) {
         msg = "Internal Server Error!! Failed to reject admin request";
@@ -58,16 +64,19 @@ const rejectAdminRequests = asyncHandler(async (req, res) => {
 });
 
 const viewBooks = asyncHandler(async (req, res) => {
+    //console.log ('reached');
     if (!req.user.isAdmin) {
         return res.redirect(
           "/error?type=403 Forbidden&message=You are not authorized to view this page."
         );
     }
     try {
-        const query = "SELECT b.*, c.checkout_date, c.checkin_date, u.username FROM books b LEFT JOIN checkouts c ON b.id = c.book_id LEFT JOIN users u ON c.user_id = u.id";
-        const result = await pool.query(query);
-        const books = result.rows;
-        res.render("books", { books });
+      //console.log("reached");
+      const query = "SELECT b.*, c.checkout_date, c.return_date, u.username FROM books b LEFT JOIN checkouts c ON b.id = c.book_id LEFT JOIN users u ON c.user_id = u.id";
+      const [rows] = await pool.query(query); // Use array destructuring to get the rows directly
+      const books = rows;
+      //console.log(books);
+      res.render("books", { books });
     } catch (error) {
         console.error("Error retrieving books:", error);
         res.status(500).send("Internal Server Error");
@@ -82,10 +91,9 @@ const addBook = asyncHandler(async (req, res) => {
     }
     try {
         const { title, author } = req.body;
-        const query = "INSERT INTO books (title, author) VALUES ($1, $2)";
+        const query = "INSERT INTO books (title, author) VALUES (?, ?)";
         await pool.query(query, [title, author]);
-        res.redirect("/admin/books");
-        msg = "Book added successfully";
+        res.status(200).send({ message: 'Book added successfully.' });
     } catch (error) {
         msg = "Internal Server Error!! Failed to add book";
         console.error("Error adding book:", error);
@@ -94,77 +102,103 @@ const addBook = asyncHandler(async (req, res) => {
 });
 
 const deleteBook = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-        return res.redirect(
-          "/error?type=403 Forbidden&message=You are not authorized to view this page."
-        );
+  const bookId = req.params; // Correct destructuring
+  //console.log('Book ID:', bookId);
+
+  const viewQuery = "SELECT * FROM books WHERE id = ?";
+  const deleteQuery = "DELETE FROM books WHERE id = ?";
+  const deleteCheckouts = "DELETE FROM checkouts WHERE book_id = ?";
+
+  let deletedBook;
+  let success;
+
+  try {
+    // View the book to be deleted
+    const [viewResult] = await pool.query(viewQuery, [bookId.id]);
+    if (viewResult.length === 0) {
+      success = false;
+      return res.status(404).send("Book not found");
     }
-    try {
-        const { bookId } = req.params;
-        const query = "DELETE FROM books WHERE id = $1";
-        await pool.query(query, [bookId]);
-        res.redirect("/admin/books");
-        msg = "Book deleted successfully";
-    } catch (error) {
-        msg = "Internal Server Error!! Failed to delete book";
-        console.error("Error deleting book:", error);
-        res.status(500).send("Internal Server Error");
+    deletedBook = viewResult[0];
+
+    // Delete checkouts related to the book
+    await pool.query(deleteCheckouts, [bookId.id]);
+
+    // Delete the book
+    const [deleteResult] = await pool.query(deleteQuery, [bookId.id]);
+
+    // Check if the book was actually deleted
+    if (deleteResult.affectedRows === 0) {
+      success = false;
+      return res.status(500).send("Failed to delete the book");
     }
+
+    success = true;
+    res.status(200)//.send("Book deleted successfully");
+    res.redirect('/api/admin/books/manage');
+
+  } catch (err) {
+    console.error("Error deleting book:", err);
+    success = false;
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 const renderUpdateBookPage = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-      return res.redirect(
-        "/error?type=403 Forbidden&message=You are not authorized to view this page."
-      );
-    }
-  
-    const bookId = req.params.id;
-  
-    try {
-      const query = "SELECT * FROM books WHERE id = ?";
-      const [rows] = await pool.query(query, [bookId]);
-      const book = rows[0];
-  
-      res.render("updateBook", {
-        user: req.user,
-        book: book,
-        message: "",
-      });
-    } catch (err) {
-      return res.redirect(
-        "/error?type=500 Internal Server Error&message=Failed to retrieve book details"
-      );
-    }
-  });
-  
-  const adminUpdateBook = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-      return res.redirect(
-        "/error?type=403 Forbidden&message=You are not authorized to view this page."
-      );
-    }
-  
-    const { title, author } = req.body;
-    const queryBook = "SELECT * FROM books WHERE title = ?";
-    const [rows] = await pool.query(queryBook, [title]);
+  if (!req.user.isAdmin) {
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
+  }
+
+  const {id: bookId} = req.params;
+  console.log('Book ID:', bookId);
+
+  try {
+    const query = "SELECT * FROM books WHERE id = ?";
+    const [rows] = await pool.query(query, [bookId]);
     const book = rows[0];
-    const query = "UPDATE books SET title = ?, author = ? WHERE id = ?";
-    let message;
-    try {
-      await pool.query(query, [title, author, req.params.id]);
-      message = `Book '${title}' updated successfully`;
-    } catch (err) {
-      res.status(500);
-      message = "Failed to update book";
-    }
-  
+    console.log(book);
+
     res.render("updateBook", {
       user: req.user,
       book: book,
-      message: message,
+      message: "",
     });
+  } catch (err) {
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to retrieve book details"
+    );
+  }
+});
+
+const adminUpdateBook = asyncHandler(async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
+  }
+
+  const { title, author } = req.body;
+  const queryBook = "SELECT * FROM books WHERE title = ?";
+  const [rows] = await pool.query(queryBook, [title]);
+  const book = rows[0];
+  const query = "UPDATE books SET title = ?, author = ? WHERE id = ?";
+  let message;
+  try {
+    await pool.query(query, [title, author, req.params.id]);
+    message = `Book '${title}' updated successfully`;
+  } catch (err) {
+    res.status(500);
+    message = "Failed to update book";
+  }
+
+  res.render("updateBook", {
+    user: req.user,
+    book: book,
+    message: message,
   });
+});
 
   const searchBooks = asyncHandler(async (req, res) => {
     const { query } = req.query;

@@ -10,7 +10,7 @@ const validateToken = require('./middleware/validateToken');
 const { pool } = require('./database');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 app.set("view engine", "ejs"); // Set the view engine to EJS for rendering HTML templates
 app.set("views", path.join(__dirname, "views")); // Set the directory for view templates to 'views'
@@ -23,7 +23,7 @@ app.use(cookieParser());
 
 app.use('/api/users', require('./routes/loginRoutes'));
 app.use("/api/user", require("./routes/userRoutes"));
-app.use('/api/admin', require('./routes/adminRoutes'))
+app.use('/api/admin', require('./routes/adminRoutes'));
 app.use(errorHandler);
 
 app.get("/login", (req, res) => {

@@ -5,6 +5,7 @@ const {
     getAvailableBooks,
     checkHistory,
     searchBooks,
+    requestAdminAccess
 } = require("../controllers/userControllers");
 
 const validateToken = require('../middleware/validateToken');
@@ -16,5 +17,6 @@ router.post("/checkin/:id", validateToken, checkinBook);
 router.get("/books/view", validateToken, getAvailableBooks);
 router.get("/history", validateToken, checkHistory);
 router.get("/books/search", validateToken, searchBooks);
+router.post('/request-admin', validateToken, requestAdminAccess);
 
 module.exports = router;

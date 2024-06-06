@@ -136,12 +136,27 @@ const searchBooks = asyncHandler(async (req, res) => {
     }
 });
 
+const requestAdminAccess = asyncHandler(async (req, res) => {
+    const userId = req.user.id;
+
+    const updateAdminRequestQuery = "UPDATE users SET admin_request_status = 'pending' WHERE id = ?";
+
+    try {
+        await pool.query(updateAdminRequestQuery, [userId]);
+        res.status(200).send({ message: 'Admin request submitted successfully.' });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: 'Error submitting admin request.' });
+    }
+});
+
 module.exports = {
     checkoutBook,
     checkinBook,
     getAvailableBooks,
     checkHistory,
-    searchBooks
+    searchBooks,
+    requestAdminAccess
 };
 
 

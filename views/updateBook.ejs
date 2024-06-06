@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Books</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/minty/bootstrap.min.css" integrity="sha384-H4X+4tKc7b8s4GoMrylmy2ssQYpDHoqzPa9aKXbDwPoPUA3Ra8PA5dGzijN+ePnH" crossorigin="anonymous">
+</head>
+<body>
+    <h1 class="mb-4">Update Book</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Update Book</h3>
+  </div>
+  <div class="card-body">
+    <form action="/api/admin/books/update/<%= book.id %>" method="POST">
+      <div class="form-group">
+        <label for="title">Title:</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          class="form-control"
+          value="<%= book.title %>"
+          placeholder="Enter new title"
+        />
+      </div>
+      <div class="form-group">
+        <label for="author">Author:</label>
+        <input
+          type="text"
+          id="author"
+          name="author"
+          class="form-control"
+          value="<%= book.author %>"
+          placeholder="Enter new author"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">Update Book</button>
+    </form>
+    <div style="height: 1rem"></div>
+    <form action="/api/admin/books/manage" method="GET">
+      <button type="submit" class="btn btn-secondary">Go Back</button>
+    </form>
+    <div style="height: 0.5rem"></div>
+    <p><%= message %></p>
+  </div>
+</div>
+</body>
+</html>
