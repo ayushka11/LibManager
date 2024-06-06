@@ -9,20 +9,6 @@ const pool = mysql.createPool({
   insecureAuth: true
 }).promise();
 
-// pool.connect(function(err) {
-//   if (err) throw err;
-//   console.log("Connected!");
-// })
-
-//   pool.getConnection((err, connection) => {
-//     if (err) {
-//         console.error('Error connecting to database:', err);
-//         return;
-//     }
-//     console.log('Database connected!');
-//     connection.release(); // Release the connection
-// });
-
   async function createUser(name) {
     const result = await pool.query(`insert into users(name) values(?)`, [name]);
     const id = result[0].insertId;

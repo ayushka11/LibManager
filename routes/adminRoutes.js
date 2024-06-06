@@ -16,7 +16,8 @@ const router = express.Router();
 
 router.get("/books/manage", validateToken, viewBooks);
 router.post("/books", validateToken, addBook);
-router.post("/books/update/:id", validateToken, adminUpdateBook);
+router.post("/books/update/:id", validateToken, renderUpdateBookPage);
+router.post("/books/update/details/:id", validateToken, adminUpdateBook);
 router.post("/books/delete/:id", validateToken, deleteBook);
 router.get("/books/search", validateToken, searchBooks);
 router.get("/books/update/:id", validateToken, renderUpdateBookPage);

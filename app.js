@@ -12,8 +12,8 @@ const { pool } = require('./database');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.set("view engine", "ejs"); // Set the view engine to EJS for rendering HTML templates
-app.set("views", path.join(__dirname, "views")); // Set the directory for view templates to 'views'
+app.set("view engine", "ejs"); 
+app.set("views", path.join(__dirname, "views")); 
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -39,7 +39,7 @@ app.get("/home", validateToken, async (req, res) => {
     if (req.user.isAdmin) {
       res.render("adminHome", { user: req.user, message: "" });
     } else {
-      const [rows] = await pool.query("SELECT * FROM books"); // Adjust the query based on your table structure
+      const [rows] = await pool.query("SELECT * FROM books"); 
       const books = rows;
       res.render("userHome", { user: req.user, books: books });
     }
@@ -51,7 +51,7 @@ app.get("/home", validateToken, async (req, res) => {
 
 app.get("/view", validateToken, async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM books"); // Adjust the query based on your table structure
+    const [rows] = await pool.query("SELECT * FROM books");
     const books = rows;
     res.render("userViewBooks", { user: req.user, books: books });
   } catch (err) {
@@ -62,7 +62,7 @@ app.get("/view", validateToken, async (req, res) => {
 
 app.get("/history", validateToken, async (req, res) => {
   try {
-    const userId = req.user.id; // Assumes validateToken middleware sets req.user
+    const userId = req.user.id; 
     const [rows] = await pool.query(`
       SELECT checkouts.id as checkout_id, checkouts.checkout_date, checkouts.due_date, checkouts.return_date, checkouts.fine, 
              books.id as book_id, books.title, books.author 

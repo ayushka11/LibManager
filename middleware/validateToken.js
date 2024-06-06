@@ -2,7 +2,6 @@ const asyncHandler = require('express-async-handler');
 const jwt = require('jsonwebtoken');
 
 const validateToken = asyncHandler(async (req, res, next) => {
-    //console.log('validateToken middleware');
     const token = req.cookies.jwt;
 
     if (!token) return res.sendStatus(401);
@@ -14,7 +13,6 @@ const validateToken = asyncHandler(async (req, res, next) => {
             username: decode.user.username,
             isAdmin: decode.user.isAdmin
         };
-        //console.log('valid');
 
         next();
     } catch (err) {

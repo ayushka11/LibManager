@@ -9,10 +9,10 @@ const viewAdminRequests = asyncHandler(async (req, res) => {
       );
   }
   try {
-      //console.log('reached viewAdminRequests');
+     
       const query = "SELECT * FROM users WHERE admin_request_status = 'pending'";
-      const [users] = await pool.query(query); // Correctly destructure the result to get the rows
-      //console.log(users);
+      const [users] = await pool.query(query); 
+      
       res.render("adminRequests", { users });
   } catch (error) {
       console.error("Error retrieving admin requests:", error);
@@ -29,7 +29,7 @@ const approveAdminRequests = asyncHandler(async (req, res) => {
   try {
       const { id: userId } = req.params; 
       const query = "UPDATE users SET admin_request_status = 'approved', isAdmin = true WHERE id = ?";
-      await pool.query(query, [userId]); // Use userId directly
+      await pool.query(query, [userId]);
       res.status(200);
       res.redirect("/api/admin/requests");
       msg = "Admin request approved";
@@ -50,7 +50,7 @@ const rejectAdminRequests = asyncHandler(async (req, res) => {
     }
     try {
         const { id: userId } = req.params;
-        console.log(userId);
+       
         const query = "UPDATE users SET admin_request_status = 'rejected' WHERE id = ?";
         await pool.query(query, [userId]);
         res.status(200);
@@ -64,18 +64,18 @@ const rejectAdminRequests = asyncHandler(async (req, res) => {
 });
 
 const viewBooks = asyncHandler(async (req, res) => {
-    //console.log ('reached');
+   
     if (!req.user.isAdmin) {
         return res.redirect(
           "/error?type=403 Forbidden&message=You are not authorized to view this page."
         );
     }
     try {
-      //console.log("reached");
+      
       const query = "SELECT b.*, c.checkout_date, c.return_date, u.username FROM books b LEFT JOIN checkouts c ON b.id = c.book_id LEFT JOIN users u ON c.user_id = u.id";
-      const [rows] = await pool.query(query); // Use array destructuring to get the rows directly
+      const [rows] = await pool.query(query); 
       const books = rows;
-      //console.log(books);
+      
       res.render("books", { books });
     } catch (error) {
         console.error("Error retrieving books:", error);
@@ -102,8 +102,7 @@ const addBook = asyncHandler(async (req, res) => {
 });
 
 const deleteBook = asyncHandler(async (req, res) => {
-  const bookId = req.params; // Correct destructuring
-  //console.log('Book ID:', bookId);
+  const bookId = req.params; 
 
   const viewQuery = "SELECT * FROM books WHERE id = ?";
   const deleteQuery = "DELETE FROM books WHERE id = ?";
@@ -113,7 +112,7 @@ const deleteBook = asyncHandler(async (req, res) => {
   let success;
 
   try {
-    // View the book to be deleted
+    
     const [viewResult] = await pool.query(viewQuery, [bookId.id]);
     if (viewResult.length === 0) {
       success = false;
@@ -121,20 +120,20 @@ const deleteBook = asyncHandler(async (req, res) => {
     }
     deletedBook = viewResult[0];
 
-    // Delete checkouts related to the book
+    
     await pool.query(deleteCheckouts, [bookId.id]);
 
-    // Delete the book
+   
     const [deleteResult] = await pool.query(deleteQuery, [bookId.id]);
 
-    // Check if the book was actually deleted
+    
     if (deleteResult.affectedRows === 0) {
       success = false;
       return res.status(500).send("Failed to delete the book");
     }
 
     success = true;
-    res.status(200)//.send("Book deleted successfully");
+    res.status(200)
     res.redirect('/api/admin/books/manage');
 
   } catch (err) {
@@ -152,18 +151,18 @@ const renderUpdateBookPage = asyncHandler(async (req, res) => {
   }
 
   const {id: bookId} = req.params;
-  console.log('Book ID:', bookId);
+  
 
   try {
     const query = "SELECT * FROM books WHERE id = ?";
     const [rows] = await pool.query(query, [bookId]);
     const book = rows[0];
-    console.log(book);
+    
 
     res.render("updateBook", {
       user: req.user,
       book: book,
-      message: "",
+      message: "Enter Details",
     });
   } catch (err) {
     return res.redirect(
@@ -188,6 +187,7 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
   try {
     await pool.query(query, [title, author, req.params.id]);
     message = `Book '${title}' updated successfully`;
+    res.redirect("/api/admin/books/manage");
   } catch (err) {
     res.status(500);
     message = "Failed to update book";
