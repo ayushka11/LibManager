@@ -2,7 +2,8 @@ CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    isAdmin BOOLEAN DEFAULT false
+    isAdmin BOOLEAN DEFAULT false,
+    admin_request_status VARCHAR(20) DEFAULT 'none'
 );
 
 CREATE TABLE books (
@@ -24,11 +25,11 @@ CREATE TABLE checkouts (
     FOREIGN KEY (book_id) REFERENCES books(id)
 );
 
-CREATE TABLE admin_requests (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    status VARCHAR(20) DEFAULT 'pending',
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
+-- CREATE TABLE admin_requests (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     user_id INT,
+--     status VARCHAR(20) DEFAULT 'pending',
+--     FOREIGN KEY (user_id) REFERENCES users(id)
+-- );
 
 

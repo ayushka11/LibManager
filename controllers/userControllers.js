@@ -41,15 +41,33 @@ const checkinBook = asyncHandler(async (req, res) => {
 
     const selectDueDateQuery = "SELECT due_date FROM checkouts WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
     try {
+        // Log inputs
+        //console.log(`userId: ${userId}, bookId: ${bookId}`);
+
+        // Execute selectDueDateQuery
         const [results] = await pool.query(selectDueDateQuery, [userId, bookId]);
+
+        // Log results of the query
+        //console.log('Results:', results);
+
+        // Handle case when no results are found
+        if (results.length === 0) {
+            return res.status(404).send('No active checkout found for this book and user.');
+        }
+
         const dueDate = new Date(results[0].due_date);
         let fine = 0;
+
         if (returnDate > dueDate) {
             const daysLate = Math.ceil((returnDate-dueDate)/(1000*60*60*24));
             fine = daysLate * 5;
         }
         const updateCheckoutQuery = "UPDATE checkouts SET return_date = ?, fine = ? WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
         await pool.query(updateCheckoutQuery, [returnDate, fine, userId, bookId]);
+
+        const updateBookStatusQuery = "UPDATE books SET available = true WHERE id = ?";
+        await pool.query(updateBookStatusQuery, [bookId]);
+        
         const bookQuery = "SELECT * FROM books WHERE id = ?";
         const [book] = await pool.query(bookQuery, [bookId]);
 

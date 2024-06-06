@@ -8,7 +8,11 @@ const validateToken = asyncHandler(async (req, res, next) => {
 
     try {
         const decode = await jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decode.user;
+        req.user = {
+            id: decode.user.id,
+            username: decode.user.username,
+            isAdmin: decode.user.isAdmin
+        };
         console.log(decode.user);
         next();
     } catch (err) {
