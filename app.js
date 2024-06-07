@@ -95,5 +95,5 @@ app.listen(PORT, () => {
 module.exports = app;
 
 app.get('/', (req, res) => {
-    res.status(200).end('Hello from the server');
+    res.render('front');
 })

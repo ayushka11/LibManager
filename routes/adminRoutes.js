@@ -10,7 +10,7 @@ const {
     renderUpdateBookPage, 
     adminUpdateBook, 
     searchBooks
-}= require('../controllers/adminControllers');
+}= require('../controllers/adminControllers.js');
 
 const router = express.Router();
 

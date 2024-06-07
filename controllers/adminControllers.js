@@ -4,9 +4,7 @@ const { search } = require("../routes/loginRoutes");
 
 const viewAdminRequests = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-      return res.redirect(
-          "/error?type=403 Forbidden&message=You are not authorized to view this page."
-      );
+    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
   }
   try {
      
@@ -15,16 +13,13 @@ const viewAdminRequests = asyncHandler(async (req, res) => {
       
       res.render("adminRequests", { users });
   } catch (error) {
-      console.error("Error retrieving admin requests:", error);
-      res.status(500).send("Internal Server Error");
+    res.status(500).render('error', { message: 'An error occurred!' });
   }    
 });
 
 const approveAdminRequests = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-      return res.redirect(
-          "/error?type=403 Forbidden&message=You are not authorized to view this page."
-      );
+    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
   }
   try {
       const { id: userId } = req.params; 
@@ -32,21 +27,17 @@ const approveAdminRequests = asyncHandler(async (req, res) => {
       await pool.query(query, [userId]);
       res.status(200);
       res.redirect("/api/admin/requests");
-      msg = "Admin request approved";
+      let msg = "Admin request approved";
 
   } catch (error) {
-      msg = "Internal Server Error!! Failed to approve admin request";
-      console.error("Error approving admin request:", error);
-      res.status(500).send("Internal Server Error");
+    res.status(500).render('error', { message: 'An error occurred!' });
   }
 });
 
 
 const rejectAdminRequests = asyncHandler(async (req, res) => {
     if (!req.user.isAdmin) {
-        return res.redirect(
-          "/error?type=403 Forbidden&message=You are not authorized to view this page."
-        );
+      res.status(401).render('error', { message: 'you are not authorized to view this page.' });
     }
     try {
         const { id: userId } = req.params;
@@ -57,18 +48,14 @@ const rejectAdminRequests = asyncHandler(async (req, res) => {
         res.redirect("/api/admin/requests");
         msg = "Admin request rejected";
     } catch (error) {
-        msg = "Internal Server Error!! Failed to reject admin request";
-        console.error("Error rejecting admin request:", error);
-        res.status(500).send("Internal Server Error");
+      res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
 const viewBooks = asyncHandler(async (req, res) => {
    
     if (!req.user.isAdmin) {
-        return res.redirect(
-          "/error?type=403 Forbidden&message=You are not authorized to view this page."
-        );
+      res.status(401).render('error', { message: 'you are not authorized to view this page.' });
     }
     try {
       
@@ -78,30 +65,29 @@ const viewBooks = asyncHandler(async (req, res) => {
       
       res.render("books", { books });
     } catch (error) {
-        console.error("Error retrieving books:", error);
-        res.status(500).send("Internal Server Error");
+      res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
 const addBook = asyncHandler(async (req, res) => {
     if (!req.user.isAdmin) {
-        return res.redirect(
-          "/error?type=403 Forbidden&message=You are not authorized to view this page."
-        );
+      res.status(401).render('error', { message: 'you are not authorized to view this page.' });
     }
     try {
         const { title, author } = req.body;
         const query = "INSERT INTO books (title, author) VALUES (?, ?)";
         await pool.query(query, [title, author]);
-        res.status(200).send({ message: 'Book added successfully.' });
+        let msg = "Book added successfully";
+        res.render('adminHome', { user: req.user, message: msg });
     } catch (error) {
-        msg = "Internal Server Error!! Failed to add book";
-        console.error("Error adding book:", error);
-        res.status(500).send("Internal Server Error");
+      res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
 const deleteBook = asyncHandler(async (req, res) => {
+  if (!req.user.isAdmin) {
+    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+  }
   const bookId = req.params; 
 
   const viewQuery = "SELECT * FROM books WHERE id = ?";
@@ -129,7 +115,7 @@ const deleteBook = asyncHandler(async (req, res) => {
     
     if (deleteResult.affectedRows === 0) {
       success = false;
-      return res.status(500).send("Failed to delete the book");
+      res.status(500).render('error', { message: 'failed to delete book' });
     }
 
     success = true;
@@ -137,17 +123,13 @@ const deleteBook = asyncHandler(async (req, res) => {
     res.redirect('/api/admin/books/manage');
 
   } catch (err) {
-    console.error("Error deleting book:", err);
-    success = false;
-    res.status(500).send("Internal Server Error");
+    res.status(500).render('error', { message: 'An error occurred!' });
   }
 });
 
 const renderUpdateBookPage = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    return res.redirect(
-      "/error?type=403 Forbidden&message=You are not authorized to view this page."
-    );
+    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
   }
 
   const {id: bookId} = req.params;
@@ -165,17 +147,13 @@ const renderUpdateBookPage = asyncHandler(async (req, res) => {
       message: "Enter Details",
     });
   } catch (err) {
-    return res.redirect(
-      "/error?type=500 Internal Server Error&message=Failed to retrieve book details"
-    );
+    res.status(500).render('error', { message: 'An error occurred!' });
   }
 });
 
 const adminUpdateBook = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    return res.redirect(
-      "/error?type=403 Forbidden&message=You are not authorized to view this page."
-    );
+    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
   }
 
   const { title, author } = req.body;
@@ -189,8 +167,7 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     message = `Book '${title}' updated successfully`;
     res.redirect("/api/admin/books/manage");
   } catch (err) {
-    res.status(500);
-    message = "Failed to update book";
+    res.status(500).render('error', { message: 'An error occurred!' });
   }
 
   res.render("updateBook", {
@@ -211,7 +188,7 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
       }
       res.json(results);
     } catch (err) {
-      res.status(500).send("Failed to search books");
+      res.status(500).render('error', { message: 'An error occurred!' });
     }
   });
 

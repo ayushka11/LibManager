@@ -31,11 +31,12 @@ const registerUser = asyncHandler(async (req, res) => {
         res.redirect('/login');
     } catch (err) {
         const sqlMessage = err.sqlMessage;
-        if (err.sqlMessage && sqlMessage.slice(0, 15) == 'Duplicate entry') {
-            res.status(400);
-            throw new Error('Username already exists');
+        if (sqlMessage && sqlMessage.slice(0, 15) === 'Duplicate entry') {
+            const message = 'Username already exists';
+            res.status(400).render('registerUser', { errorMessage: message });
+        } else {
+            res.status(500).render('registerUser', { errorMessage: 'Registration failed' });
         }
-        res.status(500).json({message: 'Registration failed'});
     }
 });
 
@@ -43,19 +44,25 @@ const loginUser = asyncHandler(async (req, res) => {
     const { username, password} = req.body;
 
     if (!username || !password) {
-        return res.status(400).json({message: "ALL FIELDS ARE MANDATORY"});
+        const message = 'ALL FIELDS ARE REQUIRED';
+        res.status(400).render('loginUser', { errorMessage: message });
+        return;
     }
 
     try {
         const info = await getUserByName(username);
         const user = info[0][0];
         if (!user) {
-            return res.status(401).json({message: "INVALID USERNAME OR PASSWORD"});
+            const message = 'INVALID USERNAME OR PASSWORD';
+            res.status(400).render('loginUser', { errorMessage: message });
+            return;
         }
 
         const validpwd = await bcrypt.compare(password, user.password);
         if (!validpwd) {
-            return res.status(401).json({message: "INVALID USERNAME OR PASSWORD"});
+            const message = 'INVALID USERNAME OR PASSWORD';
+            res.status(400).render('loginUser', { errorMessage: message });
+            return;
         }
 
         const token = jwt.sign(
@@ -73,7 +80,9 @@ const loginUser = asyncHandler(async (req, res) => {
         res.redirect('/home');
     } catch (err) {
         console.error(err);
-        res.status(500).json({message: "SERVER ERROR"});
+        const message = 'internal server error';
+        res.status(400).render('loginUser', { errorMessage: message });
+        return;
     }
 
 });

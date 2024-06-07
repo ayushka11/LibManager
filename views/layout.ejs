@@ -32,8 +32,8 @@
             <a class="nav-link" href="/history">Borrowing History</a>
           </li>
           <li class="nav-item">
-            <form action="/api/user/request-admin" method="POST" class="d-inline">
-              <button class="btn btn-outline-warning" type="submit">Request Admin Access</button>
+            <form action="/home" method="GET" class="d-inline">
+              <button class="btn btn-outline-warning" id="adminRequestButton" type="submit">Request Admin Access</button>
             </form>
           </li>
           <% } %>
@@ -49,6 +49,14 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      $(document).ready(function() {
+          $('#adminRequestButton').click(function() {
+              alert('Your request will be heard soon.');
+          });
+      });
+  </script>
+  
   </body>
 </html>
 

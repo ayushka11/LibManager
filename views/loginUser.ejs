@@ -16,6 +16,11 @@
               <h2>User Login</h2>
             </div>
             <div class="card-body">
+              <% if (typeof errorMessage !== 'undefined') { %>
+                <div class="alert alert-danger" role="alert">
+                  <%= errorMessage %>
+                </div>
+              <% } %>
               <form action="/api/users/login" method="POST">
                 <div class="form-group">
                   <label for="username">Enter username:</label>

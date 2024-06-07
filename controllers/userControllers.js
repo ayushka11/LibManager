@@ -22,14 +22,13 @@ const checkoutBook = asyncHandler(async (req, res) => {
         ]);
         await pool.query(updateQuery, [bookId]);
         const [book] = await pool.query(bookQuery, [bookId]);
-        console.log(book);
         res.render("checkoutDetails", {
             user: req.user,
             book: book[0],
             checkoutType: "checkOut",
           });
     } catch (error) {
-        res.status(500).send('Error: ' + error.message)
+        res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
@@ -69,7 +68,7 @@ const checkinBook = asyncHandler(async (req, res) => {
             checkoutType: "checkIn",
           });
     } catch (error) {
-        res.status(500).send('Error: ' + error.message);
+        res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
@@ -80,7 +79,7 @@ const getAvailableBooks = asyncHandler(async (req, res) => {
 
         res.render('userViewBooks', { user: req.user, books: results });
     } catch (err) {
-        res.status(500).send('Error: ' + err.code);
+        res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
@@ -96,7 +95,7 @@ const checkHistory = asyncHandler(async (req, res) => {
         const [results] = await pool.query(query, [userId]);
         res.render('checkoutHistory', { user: req.user, checkouts: results });
     } catch (error) {
-        res.status(500).send('Error: ' + error.message);
+        res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
@@ -124,7 +123,7 @@ const searchBooks = asyncHandler(async (req, res) => {
         const [results] = await pool.query(query, params);
         res.render('userHome', { user: req.user, books: results });
     } catch (error) {
-        res.status(500).send('Error: ' + error.message);
+        res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
@@ -135,10 +134,9 @@ const requestAdminAccess = asyncHandler(async (req, res) => {
 
     try {
         await pool.query(updateAdminRequestQuery, [userId]);
-        res.status(200).send({ message: 'Admin request submitted successfully.' });
+        const message = 'Admin request submitted successfully.';
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: 'Error submitting admin request.' });
+        res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
