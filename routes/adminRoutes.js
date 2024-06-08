@@ -11,18 +11,19 @@ const {
     adminUpdateBook, 
     searchBooks
 }= require('../controllers/adminControllers.js');
+const validateAdmin = require('../middleware/validateAdmin.js');
 
 const router = express.Router();
 
-router.get("/books/manage", validateToken, viewBooks);
-router.post("/books", validateToken, addBook);
-router.post("/books/update/:id", validateToken, renderUpdateBookPage);
-router.post("/books/update/details/:id", validateToken, adminUpdateBook);
-router.post("/books/delete/:id", validateToken, deleteBook);
-router.get("/books/search", validateToken, searchBooks);
-router.get("/books/update/:id", validateToken, renderUpdateBookPage);
-router.get("/requests", validateToken, viewAdminRequests);
-router.post("/requests/approve/:id", validateToken, approveAdminRequests);
-router.post("/requests/deny/:id", validateToken, rejectAdminRequests);
+router.get("/books/manage", validateToken, validateAdmin, viewBooks);
+router.post("/books", validateToken, validateAdmin, addBook);
+router.post("/books/update/:id", validateToken, validateAdmin, renderUpdateBookPage);
+router.post("/books/update/details/:id", validateToken, validateAdmin, adminUpdateBook);
+router.post("/books/delete/:id", validateToken, validateAdmin, deleteBook);
+router.get("/books/search", validateToken, validateAdmin, searchBooks);
+router.get("/books/update/:id", validateToken, validateAdmin, renderUpdateBookPage);
+router.get("/requests", validateToken, validateAdmin, viewAdminRequests);
+router.post("/requests/approve/:id", validateToken, validateAdmin, approveAdminRequests);
+router.post("/requests/deny/:id", validateToken, validateAdmin, rejectAdminRequests);
 
 module.exports = router;

@@ -128,6 +128,7 @@ const searchBooks = asyncHandler(async (req, res) => {
 });
 
 const requestAdminAccess = asyncHandler(async (req, res) => {
+    console.log('Requesting admin access')
     const userId = req.user.id;
 
     const updateAdminRequestQuery = "UPDATE users SET admin_request_status = 'pending' WHERE id = ?";
@@ -135,6 +136,7 @@ const requestAdminAccess = asyncHandler(async (req, res) => {
     try {
         await pool.query(updateAdminRequestQuery, [userId]);
         const message = 'Admin request submitted successfully.';
+        res.redirect('/home');
     } catch (err) {
         res.status(500).render('error', { message: 'An error occurred!' });
     }

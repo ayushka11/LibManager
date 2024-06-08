@@ -3,9 +3,9 @@ const { pool } = require("../database");
 const { search } = require("../routes/loginRoutes");
 
 const viewAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) {
-    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-  }
+  // if (!req.user.isAdmin) {
+  //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+  // }
   try {
      
       const query = "SELECT * FROM users WHERE admin_request_status = 'pending'";
@@ -18,9 +18,9 @@ const viewAdminRequests = asyncHandler(async (req, res) => {
 });
 
 const approveAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) {
-    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-  }
+  // if (!req.user.isAdmin) {
+  //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+  // }
   try {
       const { id: userId } = req.params; 
       const query = "UPDATE users SET admin_request_status = 'approved', isAdmin = true WHERE id = ?";
@@ -36,9 +36,9 @@ const approveAdminRequests = asyncHandler(async (req, res) => {
 
 
 const rejectAdminRequests = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-      res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-    }
+    // if (!req.user.isAdmin) {
+    //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+    // }
     try {
         const { id: userId } = req.params;
        
@@ -54,9 +54,9 @@ const rejectAdminRequests = asyncHandler(async (req, res) => {
 
 const viewBooks = asyncHandler(async (req, res) => {
    
-    if (!req.user.isAdmin) {
-      res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-    }
+    // if (!req.user.isAdmin) {
+    //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+    // }
     try {
       
       const query = "SELECT b.*, c.checkout_date, c.return_date, u.username FROM books b LEFT JOIN checkouts c ON b.id = c.book_id LEFT JOIN users u ON c.user_id = u.id";
@@ -70,9 +70,9 @@ const viewBooks = asyncHandler(async (req, res) => {
 });
 
 const addBook = asyncHandler(async (req, res) => {
-    if (!req.user.isAdmin) {
-      res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-    }
+    // if (!req.user.isAdmin) {
+    //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+    // }
     try {
         const { title, author } = req.body;
         const query = "INSERT INTO books (title, author) VALUES (?, ?)";
@@ -85,9 +85,9 @@ const addBook = asyncHandler(async (req, res) => {
 });
 
 const deleteBook = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) {
-    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-  }
+  // if (!req.user.isAdmin) {
+  //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+  // }
   const bookId = req.params; 
 
   const viewQuery = "SELECT * FROM books WHERE id = ?";
@@ -128,9 +128,9 @@ const deleteBook = asyncHandler(async (req, res) => {
 });
 
 const renderUpdateBookPage = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) {
-    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-  }
+  // if (!req.user.isAdmin) {
+  //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+  // }
 
   const {id: bookId} = req.params;
   
@@ -152,9 +152,9 @@ const renderUpdateBookPage = asyncHandler(async (req, res) => {
 });
 
 const adminUpdateBook = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) {
-    res.status(401).render('error', { message: 'you are not authorized to view this page.' });
-  }
+  // if (!req.user.isAdmin) {
+  //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
+  // }
 
   const { title, author } = req.body;
   const queryBook = "SELECT * FROM books WHERE title = ?";

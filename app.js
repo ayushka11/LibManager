@@ -78,10 +78,6 @@ app.get("/history", validateToken, async (req, res) => {
   }
 });
 
-
-app.get("/");
-app.get("/");
-
 app.get("/logout", (req, res) => {
   res.clearCookie("jwt");
   res.redirect("/login");
@@ -91,8 +87,6 @@ app.get("/logout", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-module.exports = app;
 
 app.get('/', (req, res) => {
     res.render('front');
