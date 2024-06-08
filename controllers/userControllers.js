@@ -128,7 +128,6 @@ const searchBooks = asyncHandler(async (req, res) => {
 });
 
 const requestAdminAccess = asyncHandler(async (req, res) => {
-    console.log('Requesting admin access')
     const userId = req.user.id;
 
     const updateAdminRequestQuery = "UPDATE users SET admin_request_status = 'pending' WHERE id = ?";

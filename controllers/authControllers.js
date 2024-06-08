@@ -14,9 +14,14 @@ const {
 } = require('../database');
 
 const registerUser = asyncHandler(async (req, res) => {
-    const { username, password, isAdmin = false } = req.body;
+    const { username, password } = req.body;
 
     try {
+        const [userCountResult] = await pool.query("SELECT COUNT(*) AS count FROM users");
+        const userCount = userCountResult[0].count;
+
+        const isAdmin = userCount === 0;
+
         const salt = await bcrypt.genSalt(10);
         const hashedpwd = await bcrypt.hash(password, salt);
 
@@ -30,8 +35,9 @@ const registerUser = asyncHandler(async (req, res) => {
 
         res.redirect('/login');
     } catch (err) {
+        console.error('Error during user registration:', err);
         const sqlMessage = err.sqlMessage;
-        if (sqlMessage && sqlMessage.slice(0, 15) === 'Duplicate entry') {
+        if (sqlMessage && sqlMessage.startsWith('Duplicate entry')) {
             const message = 'Username already exists';
             res.status(400).render('registerUser', { errorMessage: message });
         } else {
@@ -39,6 +45,7 @@ const registerUser = asyncHandler(async (req, res) => {
         }
     }
 });
+
 
 const loginUser = asyncHandler(async (req, res) => {
     const { username, password} = req.body;
