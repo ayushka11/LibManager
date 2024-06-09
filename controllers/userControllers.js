@@ -4,73 +4,101 @@ const asyncHandler = require('express-async-handler');
 const checkoutBook = asyncHandler(async (req, res) => {
     const userId = req.user.id;
     const bookId = req.params.id;
-    const checkoutDate = new Date();
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 7);
+    // const checkoutDate = new Date();
+    // const dueDate = new Date();
+    // dueDate.setDate(dueDate.getDate() + 7);
 
-    const insertQuery = "INSERT INTO checkouts (user_id, book_id, checkout_date, due_date) VALUES (?, ?, ?, ?)";
-    const updateQuery = "UPDATE books SET available = false WHERE id = ?";
-    const bookQuery = "SELECT * FROM books WHERE id = ?";
+    const insertQuery = "INSERT INTO checkouts (user_id, book_id, type) VALUES (?, ?, ?)";
+    // const updateQuery = "UPDATE books SET available = false WHERE id = ?";
+    // const bookQuery = "SELECT * FROM books WHERE id = ?";
     
 
     try {
-        await pool.query(insertQuery, [
-            userId,
-            bookId,
-            checkoutDate,
-            dueDate,
-        ]);
-        await pool.query(updateQuery, [bookId]);
-        const [book] = await pool.query(bookQuery, [bookId]);
-        res.render("checkoutDetails", {
-            user: req.user,
-            book: book[0],
-            checkoutType: "checkOut",
-          });
+        // await pool.query(insertQuery, [
+        //     userId,
+        //     bookId,
+        //     checkoutDate,
+        //     dueDate,
+        // ]);
+        // await pool.query(updateQuery, [bookId]);
+        // const [book] = await pool.query(bookQuery, [bookId]);
+        // res.render("checkoutDetails", {
+        //     user: req.user,
+        //     book: book[0],
+        //     checkoutType: "checkOut",
+        //   });
+        await pool.query(insertQuery, [userId, bookId, 'checkout']);
+        let message = 'Book checked out successfully!';
+
+        return res.render('checkoutmssg', {message: message} );
     } catch (error) {
         res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
 
 const checkinBook = asyncHandler(async (req, res) => {
-    const bookId = req.params.id;
     const userId = req.user.id;
-    const returnDate = new Date();
+    const bookId = req.params.id;
+    const selectQuery = "SELECT * FROM checkouts WHERE user_id = ? AND book_id = ? AND type = 'checkout' AND status = 'approved' LIMIT 1";
+    const updateQuery = "UPDATE checkouts SET type = 'checkin', status = 'pending' WHERE id = ?";
 
-    const selectDueDateQuery = "SELECT due_date FROM checkouts WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
     try {
-        
-        const [results] = await pool.query(selectDueDateQuery, [userId, bookId]);
+        const [rows] = await pool.query(selectQuery, [userId, bookId]);
 
-        if (results.length === 0) {
-            return res.status(404).send('No active checkout found for this book and user.');
+        if (rows.length === 0) {
+            return res.status(400).render('error', { message: 'No approved checkout record found for this book.' });
         }
 
-        const dueDate = new Date(results[0].due_date);
-        let fine = 0;
+        const checkoutId = rows[0].id;
+        await pool.query(updateQuery, [checkoutId]);
+        let message = 'Check-in request submitted successfully!';
 
-        if (returnDate > dueDate) {
-            const daysLate = Math.ceil((returnDate-dueDate)/(1000*60*60*24));
-            fine = daysLate * 5;
-        }
-        const updateCheckoutQuery = "UPDATE checkouts SET return_date = ?, fine = ? WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
-        await pool.query(updateCheckoutQuery, [returnDate, fine, userId, bookId]);
-
-        const updateBookStatusQuery = "UPDATE books SET available = true WHERE id = ?";
-        await pool.query(updateBookStatusQuery, [bookId]);
-        
-        const bookQuery = "SELECT * FROM books WHERE id = ?";
-        const [book] = await pool.query(bookQuery, [bookId]);
-
-        res.render("checkoutDetails", {
-            user: req.user,
-            book: book[0],
-            checkoutType: "checkIn",
-          });
+        return res.render('checkoutmssg', { message: message });
     } catch (error) {
-        res.status(500).render('error', { message: 'An error occurred!' });
+        return res.status(500).render('error', { message: 'An error occurred!' });
     }
 });
+
+
+// const checkinBook = asyncHandler(async (req, res) => {
+//     const bookId = req.params.id;
+//     const userId = req.user.id;
+//     // const returnDate = new Date();
+
+//     const selectDueDateQuery = "SELECT due_date FROM checkouts WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
+//     try {
+        
+//         const [results] = await pool.query(selectDueDateQuery, [userId, bookId]);
+
+//         if (results.length === 0) {
+//             return res.status(404).send('No active checkout found for this book and user.');
+//         }
+
+//         const dueDate = new Date(results[0].due_date);
+//         let fine = 0;
+
+//         if (returnDate > dueDate) {
+//             const daysLate = Math.ceil((returnDate-dueDate)/(1000*60*60*24));
+//             fine = daysLate * 5;
+//         }
+//         const updateCheckoutQuery = "UPDATE checkouts SET return_date = ?, fine = ? WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
+//         await pool.query(updateCheckoutQuery, [returnDate, fine, userId, bookId]);
+
+//         const updateBookStatusQuery = "UPDATE books SET available = true WHERE id = ?";
+//         await pool.query(updateBookStatusQuery, [bookId]);
+        
+//         const bookQuery = "SELECT * FROM books WHERE id = ?";
+//         const [book] = await pool.query(bookQuery, [bookId]);
+
+//         res.render("checkoutDetails", {
+//             user: req.user,
+//             book: book[0],
+//             checkoutType: "checkIn",
+//           });
+//     } catch (error) {
+//         res.status(500).render('error', { message: 'An error occurred!' });
+//     }
+// });
 
 const getAvailableBooks = asyncHandler(async (req, res) => {
     try {

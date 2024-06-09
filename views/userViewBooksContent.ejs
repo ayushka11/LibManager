@@ -5,6 +5,11 @@
     <h3 class="m-0">Books List</h3>
   </div>
   <div class="card-body">
+    <% if (typeof message !== 'undefined') { %>
+      <div class="alert alert-success" role="alert">
+        <%= message %>
+      </div>
+      <% } %>
     <% if (books.length > 0) { %>
     <table class="table table-bordered">
       <thead>
@@ -12,6 +17,7 @@
           <th>Title</th>
           <th>Author</th>
           <th>Actions</th>
+          <th>Quantity</th>
         </tr>
       </thead>
       <tbody>
@@ -19,6 +25,7 @@
         <tr>
           <td><%= book.title %></td>
           <td><%= book.author %></td>
+          <td><%= book.quantity %></td>
           <td>
             <form
               method="POST"

@@ -10,7 +10,8 @@ CREATE TABLE books (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     author VARCHAR(255) NOT NULL,
-    available BOOLEAN DEFAULT TRUE
+    available BOOLEAN DEFAULT TRUE,
+    quantity INT DEFAULT 1
 );
 
 CREATE TABLE checkouts (
@@ -21,6 +22,8 @@ CREATE TABLE checkouts (
     due_date DATE,
     return_date DATE,
     fine DECIMAL(5,2) DEFAULT 0,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    type ENUM('checkout', 'checkin'),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (book_id) REFERENCES books(id)
 );

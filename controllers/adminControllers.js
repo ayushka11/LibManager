@@ -73,10 +73,16 @@ const addBook = asyncHandler(async (req, res) => {
     // if (!req.user.isAdmin) {
     //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
     // }
+    const { title, author, quantity} = req.body;
+    if (!title || !author || !quantity) {
+      const message = 'ALL FIELDS ARE REQUIRED';
+      res.status(400).render('adminHome', { errorMessage: message });
+      return;
+  }
+
     try {
-        const { title, author } = req.body;
-        const query = "INSERT INTO books (title, author) VALUES (?, ?)";
-        await pool.query(query, [title, author]);
+        const query = "INSERT INTO books (title, author, quantity) VALUES (?, ?, ?)";
+        await pool.query(query, [title, author, quantity]);
         let msg = "Book added successfully";
         res.render('adminHome', { user: req.user, message: msg });
     } catch (error) {
@@ -156,14 +162,14 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
   //   res.status(401).render('error', { message: 'you are not authorized to view this page.' });
   // }
 
-  const { title, author } = req.body;
+  const { title, author, quantity } = req.body;
   const queryBook = "SELECT * FROM books WHERE title = ?";
   const [rows] = await pool.query(queryBook, [title]);
   const book = rows[0];
-  const query = "UPDATE books SET title = ?, author = ? WHERE id = ?";
+  const query = "UPDATE books SET title = ?, author = ?, quantity = ? WHERE id = ?";
   let message;
   try {
-    await pool.query(query, [title, author, req.params.id]);
+    await pool.query(query, [title, author, quantity, req.params.id]);
     message = `Book '${title}' updated successfully`;
     res.redirect("/api/admin/books/manage");
   } catch (err) {
@@ -191,6 +197,24 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
       res.status(500).render('error', { message: 'An error occurred!' });
     }
   });
+  
+  const viewCheckouts = asyncHandler(async (req, res) => {
+    const query = `
+        SELECT c.*, u.username, b.title, b.author
+        FROM checkouts c
+        JOIN users u ON c.user_id = u.id
+        JOIN books b ON c.book_id = b.id
+        WHERE c.status = 'pending';
+    `;
+
+    try {
+        const [checkouts] = await pool.query(query);
+        return res.render('viewCheckouts', { checkouts: checkouts });
+    } catch (error) {
+        res.status(500).render('error', { message: 'An error occurred while fetching checkouts!' });
+    }
+});
+
 
   module.exports = { 
     viewAdminRequests, 
@@ -201,7 +225,8 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     deleteBook, 
     renderUpdateBookPage, 
     adminUpdateBook, 
-    searchBooks 
+    searchBooks,
+    viewCheckouts
 };
 
 
