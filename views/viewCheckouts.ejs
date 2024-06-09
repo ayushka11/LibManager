@@ -24,6 +24,9 @@
               <a class="nav-link" href="/api/admin/requests">Admin Requests</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="/api/admin/checkouts">Checkout Requests</a>
+              </li>
+            <li class="nav-item">
               <a class="nav-link" href="/logout">Logout</a>
             </li>
           </ul>
@@ -60,14 +63,14 @@
               <td><%= checkout.checkout_date %></td>
               <td><%= checkout.due_date %></td>
               <td><%= checkout.return_date %></td>
-              <td><%= checkout.fine.toFixed(2) %></td>
+              <td><%= checkout.fine %></td>
               <td><%= checkout.status %></td>
               <td><%= checkout.type %></td>
               <td>
-                <form method="POST" action="/api/admin/checkout/<%= checkout.checkout_id %>/approve" style="display: inline;">
+                <form method="POST" action="/api/admin/checkouts/approve/<%= checkout.id %>" style="display: inline;">
                   <button type="submit" class="btn btn-sm btn-success">Approve</button>
                 </form>
-                <form method="POST" action="/api/admin/checkout/<%= checkout.checkout_id %>/reject" style="display: inline;">
+                <form method="POST" action="/api/admin/checkouts/deny/<%= checkout.id %>" style="display: inline;">
                   <button type="submit" class="btn btn-sm btn-danger">Reject</button>
                 </form>
               </td>

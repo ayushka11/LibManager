@@ -215,6 +215,95 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     }
 });
 
+const approvecheckouts = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const getCheckoutQuery = "SELECT * FROM checkouts WHERE id = ?";
+  const updateCheckoutQuery = `
+      UPDATE checkouts 
+      SET status = 'approved', 
+          checkout_date = CURDATE(), 
+          due_date = DATE_ADD(CURDATE(), INTERVAL 1 WEEK) 
+      WHERE id = ?;
+  `;
+  const updateCheckinQuery = `
+      UPDATE checkouts 
+      SET status = 'approved', 
+          return_date = CURDATE(), 
+          fine = CASE WHEN DATEDIFF(CURDATE(), due_date) > 0 THEN DATEDIFF(CURDATE(), due_date) * 0.50 ELSE 0 END 
+      WHERE id = ?;
+  `;
+  const updateBookCheckoutQuery = `
+      UPDATE books 
+      SET quantity = quantity - 1, 
+          available = CASE WHEN quantity - 1 = 0 THEN false ELSE available END 
+      WHERE id = ?;
+  `;
+  const updateBookCheckinQuery = `
+      UPDATE books 
+      SET quantity = quantity + 1, 
+          available = true 
+      WHERE id = ?;
+  `;
+
+  const connection = await pool.getConnection(); 
+
+  try {
+      await connection.beginTransaction(); 
+
+      const [checkoutResult] = await connection.query(getCheckoutQuery, [id]);
+      if (checkoutResult.length === 0) {
+          throw new Error('Checkout not found');
+      }
+      const checkout = checkoutResult[0];
+      const bookId = checkout.book_id;
+
+      if (checkout.type === 'checkout') {
+          await connection.query(updateCheckoutQuery, [id]);
+          await connection.query(updateBookCheckoutQuery, [bookId]);
+      } else if (checkout.type === 'checkin') {
+          await connection.query(updateCheckinQuery, [id]);
+          await connection.query(updateBookCheckinQuery, [bookId]);
+      }
+
+      await connection.commit(); 
+      res.status(200).redirect('/api/admin/checkouts');
+  } catch (error) {
+      await connection.rollback(); 
+      console.error('Error approving checkout:', error);
+      res.status(500).render('error', { message: 'An error occurred while approving checkout!' });
+  } finally {
+      connection.release(); 
+  }
+});
+
+const rejectcheckouts = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const updateCheckoutQuery = `
+      UPDATE checkouts 
+      SET status = 'rejected' 
+      WHERE id = ?;
+  `;
+
+  const connection = await pool.getConnection(); 
+
+  try {
+      await connection.beginTransaction(); 
+
+      // Update the checkout status to 'rejected'
+      await connection.query(updateCheckoutQuery, [id]);
+
+      await connection.commit(); 
+      res.status(200).redirect('/api/admin/checkouts');
+  } catch (error) {
+      await connection.rollback(); 
+      console.error('Error rejecting checkout:', error);
+      res.status(500).render('error', { message: 'An error occurred while rejecting checkout!' });
+  } finally {
+      connection.release(); 
+  }
+});
 
   module.exports = { 
     viewAdminRequests, 
@@ -226,7 +315,9 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     renderUpdateBookPage, 
     adminUpdateBook, 
     searchBooks,
-    viewCheckouts
+    viewCheckouts,
+    approvecheckouts,
+    rejectcheckouts
 };
 
 

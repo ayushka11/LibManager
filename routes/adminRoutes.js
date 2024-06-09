@@ -10,7 +10,9 @@ const {
     renderUpdateBookPage, 
     adminUpdateBook, 
     searchBooks, 
-    viewCheckouts
+    viewCheckouts,
+    approvecheckouts,
+    rejectcheckouts
 }= require('../controllers/adminControllers.js');
 const validateAdmin = require('../middleware/validateAdmin.js');
 
@@ -27,6 +29,8 @@ router.get("/requests", validateToken, validateAdmin, viewAdminRequests);
 router.post("/requests/approve/:id", validateToken, validateAdmin, approveAdminRequests);
 router.post("/requests/deny/:id", validateToken, validateAdmin, rejectAdminRequests);
 router.get("/checkouts", validateToken, validateAdmin, viewCheckouts);
+router.post("/checkouts/approve/:id", validateToken, validateAdmin, approvecheckouts);
+router.post("/checkouts/deny/:id", validateToken, validateAdmin, rejectcheckouts);
 
 
 module.exports = router;
